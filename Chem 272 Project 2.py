@@ -1,0 +1,85 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def Plot_Particles(Xinit, Yinit, Niter, mass):
+    plt.title(f'After N = {Niter} iterations')
+    plt.scatter(Xinit, Yinit, marker='o', s=mass, facecolors='grey', edgecolors='black', alpha=0.5)
+    plt.xlim(-100, 100)
+    plt.ylim(-100, 100)
+    plt.show()
+
+def CoordsToPotential(Xinit, Yinit, a, b, Particles):
+    
+    X = np.tile(Xinit, (Particles, 1))
+    Y = np.tile(Yinit, (Particles, 1))
+    Dx = X - X.transpose()
+    Dy = Y - Y.transpose()
+
+    Eye = np.eye(Particles)
+    Ones = np.ones((Particles,))
+
+    r = np.sqrt((Dx**2) + (Dy**2))
+    r += Eye*(10**16)
+    Phi = (a / r**12) - (b / r**6)
+
+    Utot = np.dot(Phi, Ones)
+    
+    return Utot
+
+def Utot_Move_Particle(Xinit, Yinit, Niter, Particles, a, b, k, Temp, mass):
+    
+    Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles)
+
+    for n in range(Niter):
+        
+        Mass_Effect = 1/mass
+        dx = Mass_Effect * np.random.choice([-1, 1], (Particles,))
+        dy = Mass_Effect * np.random.choice([-1, 1], (Particles,))
+
+        Xinit_new = Xinit + dx
+        Yinit_new = Yinit + dy
+
+        Utotnew = CoordsToPotential(Xinit_new, Yinit_new, a, b, Particles)
+        Utotdiff = Utotnew - Utot
+
+        Utot_change_index = np.argwhere(Utotdiff < 0).flatten()
+        
+        Xinit[Utot_change_index] = Xinit_new[Utot_change_index]
+        Yinit[Utot_change_index] = Yinit_new[Utot_change_index]
+
+        Prob_No_BM = np.random.rand(Particles) #Probability no brownian motion occurs
+            
+        Boltzmann_Dist = np.exp(-Utotdiff/(k*Temp))
+        Brown_Index = np.argwhere((Utotdiff > 0) & (Boltzmann_Dist > Prob_No_BM)).flatten()
+
+        Xinit[Brown_Index] = Xinit_new[Brown_Index]
+        Yinit[Brown_Index] = Yinit_new[Brown_Index]
+        
+        Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles)
+
+
+        if n % 100 == 0:
+            Plot_Particles(Xinit, Yinit, n, mass)
+
+    return Xinit, Yinit, Utot
+
+class ParticleMotion:
+
+    def __init__(self, Niter=10000, Particles=1000, a=0.01, b=0.01, Pmin=-100, Pmax= 100, k=0.2, Temp=298.15):
+        self.Niter = Niter
+        self.Particles = Particles
+        self.a = a
+        self.b = b
+        self.Pmin = Pmin
+        self.Pmax = Pmax
+        self.k = k
+        self.Temp = Temp
+
+        self.Xinit = np.random.uniform(Pmin, Pmax, (Particles,))
+        self.Yinit = np.random.uniform(Pmin, Pmax, (Particles,))
+        self.mass = np.random.uniform(1, 20, (Particles,))
+
+    def Run_Particle_Movement(self):
+        Utot_Move_Particle(self.Xinit, self.Yinit, self.Niter, self.Particles, self.a, self.b, self.k, self.Temp, self.mass)
+
+ParticleMotion().Run_Particle_Movement()
