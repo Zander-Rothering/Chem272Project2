@@ -57,20 +57,21 @@ std::vector<double> Yinit(Num_Particles, 0);
 std::vector<double> Mass(Num_Particles, 0);
 std::vector<double> No_BM_Probz(Num_Particles, 0);
 
-std::uniform_real_distribution<double> dist(0.0, 1.0);
-std::uniform_real_distribution<double> dist_mass(1.0, 20.0);
+std::uniform_real_distribution<double> positions(-100.0, 100.0);
+std::uniform_real_distribution<double> distru(0.0, 1.0);
+std::uniform_real_distribution<double> mass_val(1.0, 20.0);
 std::uniform_real_distribution<double> dist_move(-1.0, 1.0);
 
 for (auto &x : Xinit) {
-    x = dist(gen);
+    x = positions(gen);
 }
    
 for (auto &y : Yinit) {
-    y = dist(gen);
+    y = positions(gen);
 }
 
 for (auto &m : Mass) {
-    m = dist_mass(gen);
+    m = mass_val(gen);
 }
 
 std::vector<double> Mass_Effect(Num_Particles, 0.0);
@@ -82,41 +83,41 @@ std::vector<std::vector<double>> Phi = CoordsToPotential(Xinit, Yinit, a, b, Num
 std::vector<double> Utot = Utot_Calc(Phi);
 
 for (int n = 0; n < Niter; ++n){
-    std::vector<double> dx_move(Num_Particles, 0.0)
+    std::vector<double> dx_move(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
-            dx_move[i] = dist_move()*Mass_Effect[i];
+            dx_move[i] = dist_move(gen)*Mass_Effect[i];
         }
 
-    std::vector<double> dy_move(Num_Particles, 0.0)
+    std::vector<double> dy_move(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
-            dx_move[i] = dist_move()*Mass_Effect[i];
+            dy_move[i] = dist_move(gen)*Mass_Effect[i];
         }
 
-    std::vector<double> Xinit_new(Num_Particles, 0.0)
+    std::vector<double> Xinit_new(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
             Xinit_new[i] = Xinit[i] + dx_move[i];
         }
 
-    std::vector<double> Yinit_new(Num_Particles, 0.0)
+    std::vector<double> Yinit_new(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
-            Xinit_new[i] = Yinit[i] + dy_move[i];
+            Yinit_new[i] = Yinit[i] + dy_move[i];
         }
 
     std::vector<std::vector<double>> Phi_new = CoordsToPotential(Xinit_new, Yinit_new, a, b, Num_Particles);
     std::vector<double> Utot_new = Utot_Calc(Phi_new);
 
-    std::vector<double> Utot_diff(Num_Particles, 0.0)
+    std::vector<double> Utot_diff(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
             Utot_diff[i] = Utot[i] - Utot_new[i];
         }
 
-    std::vector<double> Boltzmann_Dist(Num_Particles, 0.0)
+    std::vector<double> Boltzmann_Dist(Num_Particles, 0.0);
         for (int i = 0; i < Num_Particles; ++i) {
-            Boltzmann_Dist[i] = std::exp(-1 * Utot_Diff[i]/ (k*Temp));
+            Boltzmann_Dist[i] = std::exp(-1 * Utot_diff[i]/ (k*Temp));
         }
 
     for (auto &p : No_BM_Probz){
-        p = dist(gen);
+        p = distru(gen);
         }
 
     for (size_t i=0; i < Utot_diff.size(); ++i) {
@@ -136,11 +137,11 @@ for (int n = 0; n < Niter; ++n){
     Phi = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
     Utot = Utot_Calc(Phi);
 
-    if (int n; n%100 == 0; ++n){
-        plt.title("Particle Movement");
-        plt.scatter(Xinit, Yinit);
-        plt.xlim(-100, 100);
-        plt.ylim(-100, 100);
+    if (n%1000 == 0) {
+        plt::title("Particle Movement");
+        plt::scatter(Xinit, Yinit);
+        plt::xlim(-100, 100);
+        plt::ylim(-100, 100);
         plt::show();
     }
     }
