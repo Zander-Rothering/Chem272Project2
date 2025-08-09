@@ -28,17 +28,18 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
         }
     }
     return Phi;
+}
 
-    std::vector<double> Utot_Calc(const std::vector<std::vector<double>>& Phi); {
-    int Particles = Phi.size()
-    std::vector<double> Utot(Particle, 0.0)
+std::vector<double> Utot_Calc(const std::vector<std::vector<double>>& Phi); {
+int Particles = Phi.size()
+std::vector<double> Utot(Particle, 0.0) {
     
-        for (int j = 0; j < Particles; ++j) {
-            for (int i = 0; i < Particles; ++i)
-                Utot[j] += Phi[i][j];
+    for (int j = 0; j < Particles; ++j) {
+        for (int i = 0; i < Particles; ++i)
+            Utot[j] += Phi[i][j];
         }
-    }
     return Utot;
+    }
 }
 
 int main() {
