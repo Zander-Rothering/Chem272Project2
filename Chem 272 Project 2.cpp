@@ -12,7 +12,7 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
     
     double sigma = std::pow((a/b), (1.0/6.0));
     double r_cutoff = 3.0 * sigma;
-    double Zero_equiv = std::pow(10, -16)
+    double Zero_equiv = std::pow(10, -16);
 
     for (int i = 0; i < Particles; ++i) {
         for (int j = 0; j < Particles; ++j) {
@@ -59,7 +59,7 @@ double a = 0.01;
 double b = 0.01;
 double k = 0.2;
 double Temp = 298.15;
-double TempScale = k*Temp
+double TempScale = k*Temp;
 
 std::random_device rd; // Provides a non-deterministic seed
 std::mt19937 gen(rd()); // Mersenne Twister engine seeded by random_devic
@@ -98,10 +98,10 @@ std::vector<double> dx_move(Num_Particles, 0.0);
 std::vector<double> dy_move(Num_Particles, 0.0);
 std::vector<double> Xinit_new(Num_Particles, 0.0);
 std::vector<double> Yinit_new(Num_Particles, 0.0);
-std::vector<std::vector<double>> Phi_new(Num_Particles, std::vector<double>(Particles, 0.0));
+std::vector<std::vector<double>> Phi_new(Num_Particles, std::vector<double>(Num_Particles, 0.0));
 std::vector<double> Utot_new (Num_Particles, 0.0);
 std::vector<double> Utot_diff(Num_Particles, 0.0);
-std::vector<double> Boltzmann_Dist(Num_Particles, 0.0);
+std::vector<double> Boltzmann_Factor(Num_Particles, 0.0);
 
 for (int n = 0; n < Niter; ++n){
     for (int i = 0; i < Num_Particles; ++i) {
@@ -131,11 +131,11 @@ for (int n = 0; n < Niter; ++n){
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
-        else if (Boltzmann_Factor[i] > No_BM_Probz[i] && Utot_diff[i]<0)
+        else if (Boltzmann_Factor[i] > No_BM_Probz[i] && Utot_diff[i]<0) {
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
-
+    }
     Phi = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
     Utot = Utot_Calc(Phi);
 
@@ -146,6 +146,6 @@ for (int n = 0; n < Niter; ++n){
         plt::ylim(-100, 100);
         plt::show();
     }
-    }
-    return 0;
+}
+return 0;
 }
