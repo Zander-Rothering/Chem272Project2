@@ -11,20 +11,19 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
     std::vector<std::vector<double>> Phi(Particles, std::vector<double>(Particles, 0.0));
     
     for (int i = 0; i < Particles; ++i) {
-        for (int j = 0; j < Particles; ++j) {
-            if (i == j) continue;
+                Phi[i][j] = std::pow(10, -16); 
+            }
+
+    for (int i = 0; i < Particles; ++i) {
+        for (int j = i+1; j < Particles; ++j) {
 
             double Dx = Xinit[i] - Xinit[j];
             double Dy = Yinit[i] - Yinit[j];
             double r = std::sqrt(Dx*Dx + Dy*Dy);
-
-            if (r > 0) {
-                Phi[i][j] = (a / std::pow(r, 12)) - (b / std::pow(r, 6));
-            } else {
-                Phi[i][j] = std::pow(10, -16);
+            double Utot = (a / std::pow(r, 12)) - (b / std::pow(r, 6));
+            Phi[i][j] = Phi[j][i] = Utot;
             }
         }
-    }
     return Phi;
 }
 
