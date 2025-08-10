@@ -11,11 +11,12 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
     std::vector<std::vector<double>> Phi(Particles, std::vector<double>(Particles, 0.0));
     
     double sigma = std::pow((a/b), (1.0/6.0));
-    double r_cutoff = 3 * sigma;
+    double r_cutoff = 3.0 * sigma;
+    double Zero_equiv = std::pow(10, -16)
 
     for (int i = 0; i < Particles; ++i) {
         for (int j = 0; j < Particles; ++j) {
-                Phi[i][j] = std::pow(10, -16);
+                Phi[i][j] = Zero_equiv;
             }
         }
 
@@ -27,7 +28,7 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
             double r = std::sqrt(Dx*Dx + Dy*Dy);
 
             if (r > r_cutoff) {
-                Phi[i][j] = Phi[j][i] = std::pow(10, -16);
+                Phi[i][j] = Phi[j][i] = Zero_equiv;
                 continue;
             }
 
@@ -42,8 +43,8 @@ std::vector<double> Utot_Calc(const std::vector<std::vector<double>>& Phi) {
     int Particles = Phi.size();
     std::vector<double> Utot(Particles, 0.0);
     
-    for (int j = 0; j < Particles; ++j) {
-        for (int i = 0; i < Particles; ++i) {
+    for (int i = 0; i < Particles; ++i) {
+        for (int j = 0; j < Particles; ++j) {
             Utot[j] += Phi[i][j];
         }
     }
@@ -58,6 +59,7 @@ double a = 0.01;
 double b = 0.01;
 double k = 0.2;
 double Temp = 298.15;
+double TempScale = k*Temp
 
 std::random_device rd; // Provides a non-deterministic seed
 std::mt19937 gen(rd()); // Mersenne Twister engine seeded by random_devic
@@ -96,7 +98,7 @@ std::vector<double> dx_move(Num_Particles, 0.0);
 std::vector<double> dy_move(Num_Particles, 0.0);
 std::vector<double> Xinit_new(Num_Particles, 0.0);
 std::vector<double> Yinit_new(Num_Particles, 0.0);
-std::vector<std::vector<double>> Phi_new(Particles, std::vector<double>(Particles, 0.0));
+std::vector<std::vector<double>> Phi_new(Num_Particles, std::vector<double>(Particles, 0.0));
 std::vector<double> Utot_new (Num_Particles, 0.0);
 std::vector<double> Utot_diff(Num_Particles, 0.0);
 std::vector<double> Boltzmann_Dist(Num_Particles, 0.0);
@@ -104,18 +106,12 @@ std::vector<double> Boltzmann_Dist(Num_Particles, 0.0);
 for (int n = 0; n < Niter; ++n){
     for (int i = 0; i < Num_Particles; ++i) {
         dx_move[i] = dist_move(gen)*Mass_Effect[i];
-    }
-
-    for (int i = 0; i < Num_Particles; ++i) {
-         dy_move[i] = dist_move(gen)*Mass_Effect[i];
+        dy_move[i] = dist_move(gen)*Mass_Effect[i];
     }
 
     for (int i = 0; i < Num_Particles; ++i) {
          Xinit_new[i] = Xinit[i] + dx_move[i];
-    }
-
-    for (int i = 0; i < Num_Particles; ++i) {
-        Yinit_new[i] = Yinit[i] + dy_move[i];
+         Yinit_new[i] = Yinit[i] + dy_move[i];
     }
 
     Phi_new = CoordsToPotential(Xinit_new, Yinit_new, a, b, Num_Particles);
@@ -123,29 +119,22 @@ for (int n = 0; n < Niter; ++n){
 
     for (int i = 0; i < Num_Particles; ++i) {
         Utot_diff[i] = Utot[i] - Utot_new[i];
-    }
-
-    for (int i = 0; i < Num_Particles; ++i) {
-        Boltzmann_Dist[i] = std::exp(-1 * Utot_diff[i]/ (k*Temp));
+        Boltzmann_Factor[i] = std::exp(-1 * Utot_diff[i]/ TempScale);
     }
 
     for (auto &p : No_BM_Probz){
         p = distru(gen);
         }
 
-    for (size_t i=0; i < Utot_diff.size(); ++i) {
+    for (size_t i=0; i < Num_Particles; ++i) {
         if (Utot_diff[i]>0) {
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
-    }
-
-    for (size_t i=0; i < Boltzmann_Dist.size(); ++i) {
-        if (Boltzmann_Dist[i] > No_BM_Probz[i] && Utot_diff[i]<0) {
+        else if (Boltzmann_Factor[i] > No_BM_Probz[i] && Utot_diff[i]<0)
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
-    }
 
     Phi = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
     Utot = Utot_Calc(Phi);
