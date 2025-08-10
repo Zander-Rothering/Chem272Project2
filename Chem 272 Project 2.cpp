@@ -121,14 +121,14 @@ for (int n = 0; n < Niter; ++n){
         }
 
     for (size_t i=0; i < Utot_diff.size(); ++i) {
-        if (Utot_diff[i]<0) {
+        if (Utot_diff[i]>0) {
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
     }
 
     for (size_t i=0; i < Boltzmann_Dist.size(); ++i) {
-        if (Boltzmann_Dist[i] > No_BM_Probz[i] && Utot_diff[i]>0) {
+        if (Boltzmann_Dist[i] > No_BM_Probz[i] && Utot_diff[i]<0) {
             Xinit[i] = Xinit_new[i];
             Yinit[i] = Yinit_new[i];
         }
