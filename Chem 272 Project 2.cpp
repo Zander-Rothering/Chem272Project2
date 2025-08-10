@@ -6,19 +6,12 @@
 
 namespace plt = matplotlibcpp;
 
-std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xinit, const std::vector<double>& Yinit, double a, double b, int Particles) {
+std::vector<double> CoordsToPotential(const std::vector<double>& Xinit, const std::vector<double>& Yinit, double a, double b, int Particles) {
 
-    std::vector<std::vector<double>> Phi(Particles, std::vector<double>(Particles, 0.0));
+    std::vector<double> Utot(Particles, 0.0);
     
     double sigma = std::pow((a/b), (1.0/6.0));
     double r_cutoff = 3.0 * sigma;
-    double Zero_equiv = std::pow(10, -16);
-
-    for (int i = 0; i < Particles; ++i) {
-        for (int j = 0; j < Particles; ++j) {
-                Phi[i][j] = Zero_equiv;
-            }
-        }
 
     for (int i = 0; i < Particles; ++i) {
         for (int j = i+1; j < Particles; ++j) {
@@ -28,24 +21,15 @@ std::vector<std::vector<double>> CoordsToPotential(const std::vector<double>& Xi
             double r = std::sqrt(Dx*Dx + Dy*Dy);
 
             if (r > r_cutoff) {
-                Phi[i][j] = Phi[j][i] = Zero_equiv;
                 continue;
             }
 
-            double Utot = (a / std::pow(r, 12)) - (b / std::pow(r, 6));
-            Phi[i][j] = Phi[j][i] = Utot;
-            }
-        }
-    return Phi;
-}
+            else {
+            double Utot_part = (a / std::pow(r, 12)) - (b / std::pow(r, 6));
 
-std::vector<double> Utot_Calc(const std::vector<std::vector<double>>& Phi) {
-    int Particles = Phi.size();
-    std::vector<double> Utot(Particles, 0.0);
-    
-    for (int i = 0; i < Particles; ++i) {
-        for (int j = 0; j < Particles; ++j) {
-            Utot[j] += Phi[i][j];
+            Utot[i] += Utot_part;
+            Utot[j] += Utot_part;
+            }
         }
     }
     return Utot;
@@ -91,14 +75,12 @@ for (int i = 0; i < Num_Particles; ++i) {
         Mass_Effect[i] = 1.0 / Mass[i];
 }
 
-std::vector<std::vector<double>> Phi = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
-std::vector<double> Utot = Utot_Calc(Phi);
+std::vector<double> Utot = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
 
 std::vector<double> dx_move(Num_Particles, 0.0);
 std::vector<double> dy_move(Num_Particles, 0.0);
 std::vector<double> Xinit_new(Num_Particles, 0.0);
 std::vector<double> Yinit_new(Num_Particles, 0.0);
-std::vector<std::vector<double>> Phi_new(Num_Particles, std::vector<double>(Num_Particles, 0.0));
 std::vector<double> Utot_new (Num_Particles, 0.0);
 std::vector<double> Utot_diff(Num_Particles, 0.0);
 std::vector<double> Boltzmann_Factor(Num_Particles, 0.0);
@@ -114,8 +96,7 @@ for (int n = 0; n < Niter; ++n){
          Yinit_new[i] = Yinit[i] + dy_move[i];
     }
 
-    Phi_new = CoordsToPotential(Xinit_new, Yinit_new, a, b, Num_Particles);
-    Utot_new = Utot_Calc(Phi_new);
+    Utot_new = CoordsToPotential(Xinit_new, Yinit_new, a, b, Num_Particles);
 
     for (int i = 0; i < Num_Particles; ++i) {
         Utot_diff[i] = Utot[i] - Utot_new[i];
@@ -136,11 +117,11 @@ for (int n = 0; n < Niter; ++n){
             Yinit[i] = Yinit_new[i];
         }
     }
-    Phi = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
-    Utot = Utot_Calc(Phi);
 
-    if (n%1000 == 0) {
-        plt::title("Particle Movement");
+    Utot = CoordsToPotential(Xinit, Yinit, a, b, Num_Particles);
+
+    if (n%100 == 0) {
+        plt::title("After N = " + std::to_string(n) + " iterations");
         plt::scatter(Xinit, Yinit);
         plt::xlim(-100, 100);
         plt::ylim(-100, 100);
