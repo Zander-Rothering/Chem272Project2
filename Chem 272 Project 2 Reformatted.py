@@ -75,6 +75,9 @@ def MoveParticle(Xinit, Yinit, Niter, Particles, a, b, k, Temp, mass):
         Yinit[Brown_Index] = Yinit_new[Brown_Index]
         Utot[Brown_Index] = Utotnew[Brown_Index]
 
+        r = DistToPotential(Xinit, Yinit, Particles)
+        Utot = Potential(r, a, b, Particles)
+
         if n % 100 == 0:
             PlotLocations(Xinit, Yinit, n, mass)
 
