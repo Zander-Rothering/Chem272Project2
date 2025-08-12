@@ -29,34 +29,34 @@ def CoordsToPotential(Xinit, Yinit, a, b, Particles):
 
 def Utot_Move_Particle(Xinit, Yinit, Niter, Particles, a, b, k, Temp, mass):
     
-    Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles)
+    Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles) #starting potential
 
     for n in range(Niter):
         
-        Mass_Effect = 1/mass
-        dx = Mass_Effect * np.random.choice([-1, 1], (Particles,))
-        dy = Mass_Effect * np.random.choice([-1, 1], (Particles,))
+        Mass_Effect = 1/mass #----------------------------
+        dx = Mass_Effect * np.random.choice([-1, 1], (Particles,)) #choose -1 OR 1 --> 1D array size of Particles for dx
+        dy = Mass_Effect * np.random.choice([-1, 1], (Particles,)) #choose -1 OR 1 --> 1D array size of Particles for dy
 
-        Xinit_new = Xinit + dx
-        Yinit_new = Yinit + dy
+        Xinit_new = Xinit + dx #move x direction
+        Yinit_new = Yinit + dy #move y direction
 
-        Utotnew = CoordsToPotential(Xinit_new, Yinit_new, a, b, Particles)
+        Utotnew = CoordsToPotential(Xinit_new, Yinit_new, a, b, Particles) #potential after move
         Utotdiff = Utotnew - Utot
 
-        Utot_change_index = np.argwhere(Utotdiff < 0).flatten()
+        Utot_change_index = np.argwhere(Utotdiff < 0).flatten() #indices where potential decreases
         
-        Xinit[Utot_change_index] = Xinit_new[Utot_change_index]
-        Yinit[Utot_change_index] = Yinit_new[Utot_change_index]
+        Xinit[Utot_change_index] = Xinit_new[Utot_change_index] #move particles (by taking indices where potential decreases) to new x coord
+        Yinit[Utot_change_index] = Yinit_new[Utot_change_index] #move particles (by taking indices where potential decreases) to new x coord
 
         Prob_No_BM = np.random.rand(Particles) #Probability no brownian motion occurs
             
-        Boltzmann_Dist = np.exp(-Utotdiff/(k*Temp))
-        Brown_Index = np.argwhere((Utotdiff > 0) & (Boltzmann_Dist > Prob_No_BM)).flatten()
+        Boltzmann_Dist = np.exp(-Utotdiff/(k*Temp)) #probability of particle moving
+        Brown_Index = np.argwhere((Utotdiff > 0) & (Boltzmann_Dist > Prob_No_BM)).flatten() #particles at indices where potential increases AND boltz prob > probability no motion
 
-        Xinit[Brown_Index] = Xinit_new[Brown_Index]
-        Yinit[Brown_Index] = Yinit_new[Brown_Index]
+        Xinit[Brown_Index] = Xinit_new[Brown_Index] #particles who's energy will increase can move if boltzman probability is high
+        Yinit[Brown_Index] = Yinit_new[Brown_Index] 
         
-        Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles)
+        Utot = CoordsToPotential(Xinit, Yinit, a, b, Particles) #recalculate Utot
 
 
         if n % 100 == 0:
