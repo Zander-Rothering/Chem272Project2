@@ -10,19 +10,20 @@ def Plot_Particles(Xinit, Yinit, Niter, mass):
 
 def CoordsToPotential(Xinit, Yinit, a, b, Particles):
     
-    X = np.tile(Xinit, (Particles, 1))
-    Y = np.tile(Yinit, (Particles, 1))
-    Dx = X - X.transpose()
-    Dy = Y - Y.transpose()
+    X = np.tile(Xinit, (Particles, 1)) #tile 1D array of x coords into matrix
+    Y = np.tile(Yinit, (Particles, 1)) #tile 1D array of y coords into matrix
+    
+    Dx = X - X.transpose() #matrix of distances between xi and xj
+    Dy = Y - Y.transpose() #matrix of distances between yi and yj
 
-    Eye = np.eye(Particles)
-    Ones = np.ones((Particles,))
+    Eye = np.eye(Particles) #square matrix with diagonal of 1s with size of Particles
+    Ones = np.ones((Particles,)) #1D array of 1s
 
-    r = np.sqrt((Dx**2) + (Dy**2))
-    r += Eye*(10**16)
-    Phi = (a / r**12) - (b / r**6)
+    r = np.sqrt((Dx**2) + (Dy**2)) #matrix of distances between particles
+    r += Eye*(10**16) #diagonal of large infinitely large
+    Phi = (a / r**12) - (b / r**6) #calculate potential with lennard jones
 
-    Utot = np.dot(Phi, Ones)
+    Utot = np.dot(Phi, Ones) #sum of potential each particle feels into one row
     
     return Utot
 
@@ -75,9 +76,9 @@ class ParticleMotion:
         self.k = k
         self.Temp = Temp
 
-        self.Xinit = np.random.uniform(Pmin, Pmax, (Particles,))
-        self.Yinit = np.random.uniform(Pmin, Pmax, (Particles,))
-        self.mass = np.random.uniform(1, 20, (Particles,))
+        self.Xinit = np.random.uniform(Pmin, Pmax, (Particles,)) #initialize x coordinates of particles (1D np array)
+        self.Yinit = np.random.uniform(Pmin, Pmax, (Particles,)) #initialize y coordinates of particles (1D np array)
+        self.mass = np.random.uniform(1, 20, (Particles,)) #initialize random masses of particles (1D np array)
 
     def Run_Particle_Movement(self):
         Utot_Move_Particle(self.Xinit, self.Yinit, self.Niter, self.Particles, self.a, self.b, self.k, self.Temp, self.mass)
